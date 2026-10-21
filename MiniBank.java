@@ -1,5 +1,6 @@
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 record BankInfo(String name, String branch) {}
 
@@ -11,41 +12,113 @@ enum MenuOption {
     EXIT
 }
 
+enum TransactionType {
+    DEPOSIT,
+    WITHDRAW,
+    TRANSFER
+}
+
+record Command(TransactionType type, String accountNumber, long amount) {}
+
+class Validator {
+    private static final Pattern MOBILE_PATTERN = Pattern.compile("^[6-9]\\d{9}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final Pattern PAN_PATTERN = Pattern.compile("^[A-Z]{5}[0-9]{4}[A-Z]$");
+    private static final Pattern IFSC_PATTERN = Pattern.compile("^[A-Z]{4}0[A-Z0-9]{6}$");
+
+    public static boolean isValidMobile(String mobile) {
+        return mobile != null && MOBILE_PATTERN.matcher(mobile).matches();
+    }
+
+    public static boolean isValidEmail(String email) {
+        return email != null && EMAIL_PATTERN.matcher(email).matches();
+    }
+
+    public static boolean isValidPan(String pan) {
+        return pan != null && PAN_PATTERN.matcher(pan).matches();
+    }
+
+    public static boolean isValidIfsc(String ifsc) {
+        return ifsc != null && IFSC_PATTERN.matcher(ifsc).matches();
+    }
+}
+
+class CommandParser {
+    public static Command parse(String line) {
+        String[] parts = line.trim().split("\\s+");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Command must be in format: TYPE ACCOUNT AMOUNT");
+        }
+
+        TransactionType type = TransactionType.valueOf(parts[0].trim().toUpperCase());
+        String accountNumber = parts[1].trim();
+        long amount = Long.parseLong(parts[2].trim());
+
+        return new Command(type, accountNumber, amount);
+    }
+}
+
+class StatementFormatter {
+    public static String buildStatement(MiniBank.Account account) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Account Statement\n");
+        sb.append("-----------------\n");
+        sb.append("Account Number: ").append(account.getAccountNumber()).append("\n");
+        sb.append("Owner Name: ").append(account.getOwnerName()).append("\n");
+        sb.append("Balance: ").append(account.getBalance()).append("\n");
+        sb.append("Status: ").append(account.isActive() ? "Active" : "Inactive");
+        return sb.toString();
+    }
+}
+
 public class MiniBank {
     public static void main(String[] args) {
 
         BankInfo bankInfo = new BankInfo("MiniBank", "Main Branch");
         System.out.println("Welcome to " + bankInfo.name() + " - " + bankInfo.branch());
 
-        Scanner sc = new Scanner(System.in);
-        int choice;
+        System.out.println("\nValidator checks:");
+        System.out.println("Valid mobile (9876543210): " + Validator.isValidMobile("9876543210"));
+        System.out.println("Invalid mobile (1234567890): " + Validator.isValidMobile("1234567890"));
+        System.out.println("Valid email (user@example.com): " + Validator.isValidEmail("user@example.com"));
+        System.out.println("Invalid email (user@com): " + Validator.isValidEmail("user@com"));
+        System.out.println("Valid PAN (ABCDE1234F): " + Validator.isValidPan("ABCDE1234F"));
+        System.out.println("Invalid PAN (ABCD1234): " + Validator.isValidPan("ABCD1234"));
+        System.out.println("Valid IFSC (ABCD0123456): " + Validator.isValidIfsc("ABCD0123456"));
+        System.out.println("Invalid IFSC (ABCD123): " + Validator.isValidIfsc("ABCD123"));
 
-        do {
-            System.out.println("\nMenu:");
-            System.out.println("1. Open Account");
-            System.out.println("2. Deposit");
-            System.out.println("3. Withdraw");
-            System.out.println("4. Transfer");
-            System.out.println("5. Exit");
-            System.out.print("Enter your choice: ");
+        Command sample = CommandParser.parse("DEPOSIT AC0001 500");
+        System.out.println("\nParsed command: type=" + sample.type() + ", account=" + sample.accountNumber() + ", amount=" + sample.amount());
 
-            choice = sc.nextInt();
+        try (Scanner sc = new Scanner(System.in)) {
+            int choice;
 
-            String message = switch (choice) {
-                case 1 -> "Open Account — to be implemented in a later lab.";
-                case 2 -> "Deposit — to be implemented in a later lab.";
-                case 3 -> "Withdraw — to be implemented in a later lab.";
-                case 4 -> "Transfer — to be implemented in a later lab.";
-                case 5 -> "Exiting...";
-                default -> "Invalid choice. Please try again.";
-            };
+            do {
+                System.out.println("\nMenu:");
+                System.out.println("1. Open Account");
+                System.out.println("2. Deposit");
+                System.out.println("3. Withdraw");
+                System.out.println("4. Transfer");
+                System.out.println("5. Exit");
+                System.out.print("Enter your choice: ");
 
-            System.out.println(message);
+                choice = sc.nextInt();
 
-        } while (choice != 5);
+                String message = switch (choice) {
+                    case 1 -> "Open Account — to be implemented in a later lab.";
+                    case 2 -> "Deposit — to be implemented in a later lab.";
+                    case 3 -> "Withdraw — to be implemented in a later lab.";
+                    case 4 -> "Transfer — to be implemented in a later lab.";
+                    case 5 -> "Exiting...";
+                    default -> "Invalid choice. Please try again.";
+                };
+
+                System.out.println(message);
+
+            } while (choice != 5);
+        }
 
         System.out.println("Thank you for using " + bankInfo.name() + ". Goodbye!");
-        sc.close();
 
         Account[] accounts = new Account[3];
         accounts[0] = new Account("Kush", 1000);
@@ -65,6 +138,9 @@ public class MiniBank {
         for (Account acc : accounts) {
             System.out.println(acc);
         }
+
+        System.out.println("\nStatement for first account:");
+        System.out.println(StatementFormatter.buildStatement(accounts[0]));
 
         Account sameAccount = accounts[0];
         System.out.println("\nComparing first account with itself: " + accounts[0].equals(sameAccount));
@@ -121,16 +197,12 @@ public class MiniBank {
         public void setAddress(Address address) { this.address = address; }
 
         @Override
-        public Customer clone() {
-            try {
-                Customer cloned = (Customer) super.clone();
-                if (this.address != null) {
-                    cloned.address = new Address(this.address.getLine(), this.address.getCity(), this.address.getPincode());
-                }
-                return cloned;
-            } catch (CloneNotSupportedException e) {
-                throw new AssertionError("Customer clone failed", e);
+        public Customer clone() throws CloneNotSupportedException {
+            Customer cloned = (Customer) super.clone();
+            if (this.address != null) {
+                cloned.address = new Address(this.address.getLine(), this.address.getCity(), this.address.getPincode());
             }
+            return cloned;
         }
     }
 

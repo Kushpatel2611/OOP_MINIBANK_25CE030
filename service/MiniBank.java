@@ -55,7 +55,8 @@ public class MiniBank {
         }
     }
 
-    private static void runConcurrentDepositDemo(Account account, int threadCount, int times, long amount, String label) throws InterruptedException {
+    private static void runConcurrentDepositDemo(Account account, int threadCount, int times, long amount, String label)
+            throws InterruptedException {
         out.println("\n--- " + label + " ---");
         Thread[] threads = new Thread[threadCount];
 
@@ -268,7 +269,8 @@ public class MiniBank {
         safeThreadB.start();
         safeThreadA.join();
         safeThreadB.join();
-        out.println("Final balances after safe transfer ordering: A=" + accountA.getBalance() + ", B=" + accountB.getBalance());
+        out.println("Final balances after safe transfer ordering: A=" + accountA.getBalance() + ", B="
+                + accountB.getBalance());
 
         AccountStore accountStore = new AccountStore();
         accountStore.add(new SavingsAccount("Asha", 1200, 200));
@@ -291,7 +293,7 @@ public class MiniBank {
 
         Account found = repository.findById(first.getAccountNumber());
         out.println("\nRepository lookup by id: " + found);
-        out.println("Repository average of balances: " + Repository.average(new Integer[] {900, 1200, 2500, 3500}));
+        out.println("Repository average of balances: " + Repository.average(new Integer[] { 900, 1200, 2500, 3500 }));
         out.println("All repository entries:");
         for (Account account : repository.findAll()) {
             out.println(account);
@@ -425,21 +427,33 @@ public class MiniBank {
                     case "8" -> {
                         out.print("How many transaction tasks? ");
                         int count = Integer.parseInt(scanner.nextLine());
+
+                        if (count <= 0) {
+                            out.println("Enter a number greater than zero.");
+                            break;
+                        }
+
                         java.util.List<Runnable> tasks = new java.util.ArrayList<>();
+
                         for (int i = 0; i < count; i++) {
-                            final int index = i;
+                            out.print("Account number for task " + (i + 1) + ": ");
+                            String accountNumber = scanner.nextLine().trim();
+
                             tasks.add(() -> {
                                 try {
-                                    String number = String.format("AC%04d", index + 1);
-                                    Account account = service.getAccount(number);
-                                    account.deposit(10L);
+                                    service.deposit(accountNumber, 10L);
+                                    out.println("Batch deposit successful for " + accountNumber);
                                 } catch (Exception e) {
-                                    out.println("Batch task failed: " + e.getMessage());
+                                    throw new IllegalStateException(
+                                            "Transaction failed for " + accountNumber
+                                                    + ": " + e.getMessage(),
+                                            e);
                                 }
                             });
                         }
+
                         service.processBatchTransactions(tasks);
-                        out.println("Batch transactions processed.");
+                        out.println("Batch transactions completed successfully.");
                     }
                     case "9" -> {
                         service.saveAccounts();

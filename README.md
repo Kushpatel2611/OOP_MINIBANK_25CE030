@@ -1,5 +1,4 @@
 # MiniBank — Practical 14
-
 A Java banking application developed across Practicals 1–14. It demonstrates object-oriented programming, account validation, exception handling, repository-based account management, transactions, concurrency, persistence, reporting, and automated testing.
 
 ## Requirements
@@ -8,25 +7,22 @@ A Java banking application developed across Practicals 1–14. It demonstrates o
 - Apache Maven 3.9 or compatible version
 
 ## Build and Test
-
 Run these commands from the project root:
 
-```powershell
+```
 mvn clean package
 mvn test
 ```
 
 ## Run the Application
-
 Run the interactive banking menu:
 
-```powershell
+```
 java -jar target\MiniBank-1.0.0.jar menu
 ```
-
 Run the demonstration mode:
 
-```powershell
+```
 java -jar target\MiniBank-1.0.0.jar
 ```
 
@@ -43,13 +39,10 @@ java -jar target\MiniBank-1.0.0.jar
 9. Exit
 
 ## Persistence and Reports
-
 Account data is stored in `data/accounts.dat`. Report files may be generated in the `logs/` directory.
 
 ## Testing
-
 The project includes JUnit tests for banking service operations. Run `mvn test` to execute the test suite.
 
 ## Packaging
-
 Maven creates the application JAR at `target/MiniBank-1.0.0.jar` after a successful package build.

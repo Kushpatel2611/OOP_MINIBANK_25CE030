@@ -1,0 +1,26 @@
+# Maven build output
+target/
+
+# Compiled Java files
+*.class
+out/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+
+# Local banking data
+data/*.dat
+
+# Downloaded dependency JARs
+lib/*.jar
+# Generated application JAR
+/MiniBank.jar
